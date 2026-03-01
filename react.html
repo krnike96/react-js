@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ReactJS</title>
+</head>
+
+<body>
+	<div class="root">
+
+	</div>
+
+	<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+	<script type="text/babel" data-type="module">
+		import React from 'https://esm.sh/react@19?dev';
+		import ReactDOM from 'https://esm.sh/react-dom@19/client?dev';
+
+
+		const userData = [
+			{
+				name: "Niket",
+				phone: "123456789",
+				age: "21",
+				id: crypto.randomUUID()
+			},
+			{
+				name: "Harry",
+				phone: "123453789",
+				age: "22",
+				id: crypto.randomUUID()
+			},
+			{
+				name: "Alice",
+				phone: "123456289",
+				age: "24",
+				id: crypto.randomUUID()
+			}
+
+		];
+
+		function Counter() {
+			const [count, setCount] = React.useState(0);
+			const handleIncrease = () => setCount(count => count + 1);
+			const handleReset = () => setCount(0);
+			return (
+				<>
+					<button onClick={handleIncrease}>Count : {count}</button>
+					<button onClick={handleReset}> Reset</button>
+				</>
+			);
+		}
+
+		function Card({ id, name, phone, age, style, handleDeleteUser }) {
+
+			return (
+				<div style={style}>
+					<h1> Name : {name} </h1>
+					<h1> Phone : {phone} </h1>
+					<h1> Age : {age}</h1>
+					<button onClick={() => handleDeleteUser(id)}>Delete - {id}</button>
+				</div>
+			);
+		}
+
+		function InputComponent({ inputData, handleAddUser, handleSubmit, style }) {
+			return (
+				<div style={style}>
+					<input
+						type='text'
+						name='name'
+						placeholder='Enter Name'
+						value={inputData.name}
+						onChange={handleAddUser}
+					/>
+					<input
+						type='number'
+						name='phone'
+						placeholder='Enter Phone'
+						value={inputData.phone}
+						onChange={handleAddUser}
+					/>
+					<input
+						type='number'
+						name='age'
+						placeholder='Enter Age'
+						value={inputData.age}
+						onChange={handleAddUser}
+					/>
+					<button onClick={handleSubmit}>Submit</button>
+				</div>
+			);
+		}
+
+		function App() {
+			const style = {
+				border: '1px solid #ddd',
+				padding: '20px',
+				margin: '10px 0',
+				borderRadius: '8px',
+				backgroundColor: '#f9f9f9'
+			};
+
+			const [showUser, setShowUser] = React.useState(true);
+			const [users, setUsers] = React.useState(userData);
+			const [inputData, setInputData] = React.useState({
+				name: '',
+				phone: '',
+				age: '',
+				id: crypto.randomUUID()
+			});
+
+			const handleUserVisibility = () => setShowUser(!showUser);
+
+			const handleDeleteUser = (idToDelete) => {
+				const newUsers = users.filter(user => user.id !== idToDelete);
+				setUsers(newUsers);
+			}
+
+			const handleAddUser = (e) => {
+				const { name, value } = e.target;
+				setInputData({ ...inputData, [name]: value });
+
+			}
+
+			const handleSubmit = () => {
+				if (inputData.name.trim() === '') return;
+				setUsers([...users, inputData]);
+				setInputData({
+					name: '',
+					phone: '',
+					age: '',
+					id: crypto.randomUUID()
+				})
+			}
+
+			let content;
+			if (!showUser) {
+				content = null;
+			} else if (users.length > 0) {
+				content = users.map((user) => {
+					return (
+						<Card
+							key={user.id}
+							id={user.id}
+							name={user.name}
+							phone={user.phone}
+							age={user.age}
+							style={style}
+							handleDeleteUser={handleDeleteUser}
+						/>
+					);
+				})
+			} else {
+				content = <p>No User Data Found!</p>;
+			}
+
+			return (
+				<>
+					{content}
+					<button onClick={handleUserVisibility}>{showUser ? 'Hide Users' : 'Show Users'}</button>
+					<InputComponent
+						inputData={inputData}
+						handleAddUser={handleAddUser}
+						handleSubmit={handleSubmit}
+						style={style}
+					/>
+					<Counter />
+				</>
+			);
+		}
+		const root = document.querySelector('.root');
+		ReactDOM.createRoot(root).render(<App />)
+	</script>
+</body>
+
+</html>
