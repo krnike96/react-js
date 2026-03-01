@@ -64,9 +64,15 @@
 			);
 		}
 
-		function InputComponent({ inputData, handleAddUser, handleSubmit, style }) {
+		function InputComponent({ style, inputData, searchTerm, handleSubmit, handleAddSearchData, handleAddUser }) {
 			return (
 				<div style={style}>
+					<input
+						type='text'
+						placeholder="Search"
+						value={searchTerm}
+						onChange={handleAddSearchData}
+					/>
 					<input
 						type='text'
 						name='name'
@@ -99,12 +105,13 @@
 				padding: '20px',
 				margin: '10px 0',
 				borderRadius: '8px',
-				backgroundColor: '#f9f9f9'
+				backgroundColor: '#f9f9f9',
 			};
 
 			const [showUser, setShowUser] = React.useState(true);
 			const [users, setUsers] = React.useState([]);
 			const [isLoading, setIsLoading] = React.useState(true);
+			const [searchTerm, setSearchTerm] = React.useState('');
 			const [inputData, setInputData] = React.useState({
 				name: '',
 				phone: '',
@@ -115,25 +122,18 @@
 			const handleUserVisibility = () => setShowUser(!showUser);
 
 			const handleDeleteUser = (idToDelete) => {
-				const newUsers = users.filter(user => user.id !== idToDelete);
-				setUsers(newUsers);
+				setUsers(users.filter(user => user.id !== idToDelete));
 			}
 
 			const handleAddUser = (e) => {
 				const { name, value } = e.target;
 				setInputData({ ...inputData, [name]: value });
-
 			}
 
 			const handleSubmit = () => {
 				if (inputData.name.trim() === '') return;
 				setUsers([...users, inputData]);
-				setInputData({
-					name: '',
-					phone: '',
-					age: '',
-					id: crypto.randomUUID()
-				})
+				setInputData({ name: '', phone: '', age: '', id: crypto.randomUUID() });
 			}
 
 			React.useEffect(() => {
@@ -144,47 +144,50 @@
 						setUsers(data);
 					})
 					.catch(err => {
-						console.error("Failed to fetch user data ", err);
+						console.error("Failed to fetch", err);
 						setIsLoading(false);
 					});
 			}, []);
 
+			const filteredUsers = users.filter(user =>
+				user.name.toLowerCase().includes(searchTerm.toLowerCase())
+			);
+
 			let content;
 			if (!showUser) {
 				content = null;
-			} else if (users.length > 0) {
-				content = users.map((user) => {
-					return (
-						<Card
-							key={user.id}
-							id={user.id}
-							name={user.name}
-							phone={user.phone}
-							age={user.age}
-							style={style}
-							handleDeleteUser={handleDeleteUser}
-						/>
-					);
-				})
+			} else if (filteredUsers.length > 0) {
+				content = filteredUsers.map((user) => (
+					<Card
+						key={user.id}
+						{...user}
+						style={style}
+						handleDeleteUser={handleDeleteUser}
+					/>
+				));
 			} else {
-				content = <p>No User Data Found!</p>;
+				content = <p>No users found matching "{searchTerm}"</p>;
 			}
 
 			return (
 				<>
+					<Counter />
 					{isLoading ? <p>Loading User Data...</p> : (
 						<>
-							{content}
-							<button onClick={handleUserVisibility}>{showUser ? 'Hide Users' : 'Show Users'}</button>
+							<button onClick={handleUserVisibility}>
+								{showUser ? 'Hide Users' : 'Show Users'}
+							</button>
 							<InputComponent
+								style={style}
 								inputData={inputData}
+								searchTerm={searchTerm}
+								handleAddSearchData={(e) => setSearchTerm(e.target.value)}
 								handleAddUser={handleAddUser}
 								handleSubmit={handleSubmit}
-								style={style}
 							/>
+							{content}
 						</>
 					)}
-					<Counter />
 				</>
 			);
 		}
